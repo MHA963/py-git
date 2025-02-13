@@ -1,14 +1,22 @@
 
 
 import os
-import openai
 import requests
 from git import Repo
 import random
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from dotenv import load_dotenv
 
+load_dotenv()
 
-# Set OpenAI API Key
-openai.api_key = OPENAI_API_KEY
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+BASE_DIR = os.getenv("BASE_DIR")
+
+# Load the GPT-J 6B model and tokenizer
+model_name = "EleutherAI/gpt-j-6B"
+model = AutoModelForCausalLM.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 
 def generate_commit_message(repo_name, changes):
@@ -52,16 +60,12 @@ def sync_repo(repo_url):
 
 def generate_edit(file_content):
     """
-    Use OpenAI to suggest small improvements for a given file's content.
+    Generate a small edit using the GPT-J 6B model.
     """
-    prompt = f"Make small improvements to this code or documentation without changing its functionality:\n\n{file_content}"
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
-        max_tokens=500
-    )
-    return response.choices[0].text.strip()
-
+    input_ids = tokenizer(file_content, return_tensors="pt").input_ids
+    output = model.generate(input_ids, max_length=len(input_ids) + 10, do_sample=True, temperature=0.7)
+    generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+    return generated_text
 
 def summarize_changes(original_content, updated_content):
     """
@@ -76,7 +80,7 @@ def summarize_changes(original_content, updated_content):
     response = openai.Completion.create(
         model="text-davinci-003",
         prompt=prompt,
-        max_tokens=50
+        max_tokens=10
     )
     return response.choices[0].text.strip()
 
@@ -94,11 +98,15 @@ def update_repo(repo_path):
     if os.path.exists(readme_path):
         with open(readme_path, "r") as file:
             original_content = file.read()
-        updated_content = generate_edit(original_content)
-        if updated_content != original_content:
+        updated_content = generate_edit(original_content) 
+
+        # Check if the generated edit is significantly different from the original 
+        # (you might want to add more robust checks here)
+        if updated_content != original_content and len(updated_content) > len(original_content) * 0.8: 
             with open(readme_path, "w") as file:
                 file.write(updated_content)
             repo.git.add("README.md")
+            modified = True
             modified = True
             changes = summarize_changes(original_content, updated_content)
             commit_message = generate_commit_message(repo_name=repo.working_tree_dir.split('/')[-1], changes=changes)
