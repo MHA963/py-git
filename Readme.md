@@ -6,9 +6,9 @@ This Python application automates small edits on your repository and handles the
 
 - Automatically makes small edits to your repository.
 - Handles Git operations:
-    - Pulls the latest changes.
-    - Commits the new changes.
-    - Pushes the changes to the remote repository.
+        - Pulls the latest changes.
+        - Commits the new changes.
+        - Pushes the changes to the remote repository.
 
 ## Requirements
 
@@ -18,24 +18,25 @@ This Python application automates small edits on your repository and handles the
 ## Installation
 
 1. Clone the repository:
-        ```sh
-        git clone <repository_url>
-        ```
+                ```sh
+                git clone <repository_url>
+                ```
 2. Navigate to the project directory:
-        ```sh
-        cd <project_directory>
-        ```
+                ```sh
+                cd <project_directory>
+                ```
 3. Install the required dependencies:
-        ```sh
-        pip install -r requirements.txt
-        ```
+                ```sh
+                pip install -r requirements.txt
+                ```
 
 ## Usage
 
-1. Run the script:
-        ```sh
-        python automate_git.py
-        ```
+1. Before running the application, you need to download the Hugging Face model GPT-6B via the `model.ipynb`.
+2. Run the script:
+                ```sh
+                python automate_git.py
+                ```
 
 ## Configuration
 
